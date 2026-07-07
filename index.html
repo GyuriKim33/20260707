@@ -6,25 +6,24 @@
     <title>로또 추첨기</title>
     <style>
       :root {
-        color-scheme: dark;
-        --ink: #ffffff;
-        --muted: #b3b3b3;
-        --line: #4d4d4d;
-        --panel: #181818;
-        --panel-soft: #1f1f1f;
-        --bg: #121212;
-        --accent: #1ed760;
-        --accent-dark: #1db954;
+        color-scheme: light;
+        --primary: #0066cc;
+        --primary-focus: #0071e3;
+        --ink: #1d1d1f;
+        --body: #1d1d1f;
+        --body-muted: #6e6e73;
+        --canvas: #ffffff;
+        --canvas-parchment: #f5f5f7;
+        --surface-tile-1: #272729;
+        --surface-tile-2: #2a2a2c;
+        --surface-tile-3: #252527;
+        --divider-soft: #e0e0e0;
         --gold: #d9a441;
         --blue: #539df5;
         --red: #f3727f;
         --gray: #7c7c7c;
         --green: #1ed760;
-        font-family:
-          SpotifyMixUI, CircularSp-Arab, CircularSp-Hebr, CircularSp-Cyrl,
-          CircularSp-Grek, CircularSp-Deva, "Helvetica Neue", helvetica, arial,
-          "Hiragino Sans", "Hiragino Kaku Gothic ProN", Meiryo, "MS Gothic",
-          sans-serif;
+        font-family: "SF Pro Display", "SF Pro Text", system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
       }
 
       * {
@@ -34,8 +33,8 @@
       body {
         min-height: 100vh;
         margin: 0;
-        color: var(--ink);
-        background: var(--bg);
+        color: var(--body);
+        background: linear-gradient(180deg, #f5f5f7 0%, #f2f2f2 100%);
       }
 
       button,
@@ -44,69 +43,82 @@
       }
 
       .app {
-        width: min(1040px, calc(100% - 32px));
+        width: min(1160px, calc(100% - 32px));
         margin: 0 auto;
-        padding: 24px 0 28px;
+        padding: 56px 0 80px;
       }
 
-      .top {
+      .hero {
         display: grid;
-        grid-template-columns: 1fr auto;
-        gap: 20px;
-        align-items: end;
-        margin-bottom: 16px;
+        grid-template-columns: 1.02fr 0.98fr;
+        gap: 0;
+        overflow: hidden;
+        border-radius: 32px;
+        background: var(--canvas);
+        box-shadow: 0 20px 60px rgba(0, 0, 0, 0.08);
+      }
+
+      .hero-copy {
+        padding: 48px 40px 48px 48px;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        background: linear-gradient(135deg, #ffffff 0%, #f5f5f7 100%);
+      }
+
+      .eyebrow {
+        margin: 0 0 12px;
+        color: var(--primary);
+        font-size: 12px;
+        font-weight: 700;
+        letter-spacing: 0.18em;
+        text-transform: uppercase;
       }
 
       h1 {
-        margin: 0 0 6px;
-        font-family:
-          SpotifyMixUITitle, SpotifyMixUI, "Helvetica Neue", helvetica, arial,
-          "Hiragino Sans", Meiryo, sans-serif;
-        font-size: clamp(28px, 4vw, 44px);
+        margin: 0 0 12px;
+        font-size: clamp(34px, 4vw, 52px);
         line-height: 1.05;
-        letter-spacing: 0;
+        letter-spacing: -0.03em;
       }
 
       .subtitle {
         max-width: 560px;
-        margin: 0;
-        color: var(--muted);
-        font-size: 14px;
-        line-height: 1.45;
+        margin: 0 0 28px;
+        color: var(--body-muted);
+        font-size: 17px;
+        line-height: 1.47;
       }
 
-      .controls {
+      .hero-actions {
         display: flex;
         flex-wrap: wrap;
-        gap: 10px;
-        align-items: center;
-        justify-content: flex-end;
+        gap: 12px;
+        align-items: end;
       }
 
       .control {
         display: grid;
-        gap: 5px;
+        gap: 6px;
       }
 
       label {
-        color: var(--muted);
+        color: var(--body-muted);
         font-size: 12px;
         font-weight: 700;
+        letter-spacing: 0.02em;
       }
 
       input[type="number"] {
-        width: 92px;
+        width: 90px;
         height: 44px;
-        border: 0;
-        border-radius: 500px;
-        padding: 0 12px;
-        background: var(--panel-soft);
+        border: 1px solid var(--divider-soft);
+        border-radius: 999px;
+        padding: 0 14px;
+        background: var(--canvas);
         color: var(--ink);
-        font-weight: 700;
+        font-weight: 600;
         text-align: center;
-        box-shadow:
-          rgb(18, 18, 18) 0px 1px 0px,
-          rgb(124, 124, 124) 0px 0px 0px 1px inset;
       }
 
       .button {
@@ -115,91 +127,107 @@
         border-radius: 9999px;
         padding: 0 20px;
         cursor: pointer;
-        color: #000;
-        background: var(--accent);
+        color: #fff;
+        background: var(--primary);
         font-size: 14px;
         font-weight: 700;
-        letter-spacing: 1.4px;
+        letter-spacing: 0.02em;
         text-transform: uppercase;
-        box-shadow: rgba(0, 0, 0, 0.5) 0px 8px 24px;
-        transition:
-          transform 0.15s ease,
-          background 0.15s ease;
+        transition: transform 0.15s ease, background 0.15s ease;
       }
 
       .button:hover {
-        background: var(--accent-dark);
+        background: var(--primary-focus);
         transform: translateY(-1px);
       }
 
       .button.secondary {
         color: var(--ink);
-        background: var(--panel-soft);
-        box-shadow: rgb(124, 124, 124) 0px 0px 0px 1px inset;
+        background: var(--canvas-parchment);
+        border: 1px solid var(--divider-soft);
       }
 
-      .machine {
-        overflow: hidden;
-        border-radius: 8px;
-        background: var(--panel);
-        box-shadow: rgba(0, 0, 0, 0.5) 0px 8px 24px;
+      .hero-panel {
+        position: relative;
+        padding: 28px;
+        background: linear-gradient(140deg, var(--surface-tile-1) 0%, var(--surface-tile-2) 100%);
+        color: #fff;
       }
 
-      .display {
+      .hero-display {
         display: grid;
-        grid-template-columns: minmax(0, 1fr) 170px;
-        gap: 20px;
-        align-items: center;
-        min-height: 188px;
-        padding: 20px;
-        background:
-          linear-gradient(135deg, rgba(31, 31, 31, 0.98), rgba(24, 24, 24, 0.98)),
-          repeating-linear-gradient(90deg, transparent 0 31px, rgba(255, 255, 255, 0.025) 31px 32px);
+        gap: 18px;
+        min-height: 100%;
       }
 
-      .main-draw {
+      .display-top {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 12px;
+        align-items: center;
+        justify-content: space-between;
+      }
+
+      .display-title {
+        font-size: 14px;
+        font-weight: 700;
+        letter-spacing: 0.18em;
+        text-transform: uppercase;
+        color: rgba(255, 255, 255, 0.76);
+      }
+
+      .draw-stack {
+        display: grid;
+        gap: 18px;
+        padding: 20px;
+        border-radius: 24px;
+        background: rgba(255, 255, 255, 0.06);
+        box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.07);
+      }
+
+      .draw-row {
+        display: grid;
+        gap: 12px;
+      }
+
+      .row-label {
+        font-size: 12px;
+        font-weight: 700;
+        letter-spacing: 0.18em;
+        text-transform: uppercase;
+        color: rgba(255, 255, 255, 0.72);
+      }
+
+      .main-draw,
+      .bonus-shell {
         display: flex;
         flex-wrap: wrap;
         gap: 12px;
         align-items: center;
       }
 
-      .bonus-box {
-        display: grid;
-        gap: 8px;
-        justify-items: center;
-        padding: 20px 12px;
-        box-shadow: rgb(77, 77, 77) 1px 0px 0px inset;
-      }
-
-      .bonus-label {
-        color: var(--muted);
-        font-size: 12px;
-        font-weight: 800;
-        letter-spacing: 1.4px;
-        text-transform: uppercase;
+      .bonus-shell {
+        padding-top: 4px;
       }
 
       .ball {
+        position: relative;
         display: inline-grid;
         place-items: center;
-        width: clamp(50px, 9vw, 72px);
+        width: clamp(54px, 8vw, 72px);
         aspect-ratio: 1;
         border-radius: 50%;
         color: #fff;
-        font-size: clamp(22px, 4vw, 32px);
+        font-size: clamp(22px, 4vw, 28px);
         font-weight: 700;
         text-shadow: 0 1px 1px rgba(0, 0, 0, 0.24);
-        box-shadow:
-          inset -10px -12px 20px rgba(0, 0, 0, 0.28),
-          inset 7px 8px 14px rgba(255, 255, 255, 0.18),
-          rgba(0, 0, 0, 0.5) 0px 8px 24px;
-        animation: pop 0.34s ease both;
+        box-shadow: inset -10px -12px 20px rgba(0, 0, 0, 0.28), inset 7px 8px 14px rgba(255, 255, 255, 0.16), rgba(0, 0, 0, 0.35) 0 10px 24px;
+        animation: pop 0.32s ease both;
       }
 
       .ball.small {
         width: 64px;
-        font-size: 28px;
+        font-size: 26px;
       }
 
       .ball::after {
@@ -233,32 +261,54 @@
         background: var(--green);
       }
 
+      .results-section {
+        margin-top: 20px;
+        padding: 24px;
+        border-radius: 24px;
+        background: var(--canvas);
+        box-shadow: 0 16px 44px rgba(0, 0, 0, 0.06);
+      }
+
+      .section-heading {
+        display: flex;
+        flex-wrap: wrap;
+        justify-content: space-between;
+        gap: 12px;
+        align-items: center;
+        margin-bottom: 16px;
+      }
+
+      .section-heading h2 {
+        margin: 0;
+        font-size: 22px;
+        letter-spacing: -0.02em;
+      }
+
+      .section-heading p {
+        margin: 0;
+        color: var(--body-muted);
+        font-size: 14px;
+      }
+
       .results {
         display: grid;
-        gap: 8px;
-        padding: 12px;
-        box-shadow: rgb(77, 77, 77) 0px 1px 0px inset;
-        background: var(--panel);
+        gap: 10px;
       }
 
       .ticket {
         display: grid;
-        grid-template-columns: 70px minmax(0, 1fr) auto;
+        grid-template-columns: 72px minmax(0, 1fr) auto;
         gap: 10px;
         align-items: center;
-        min-height: 54px;
+        min-height: 58px;
         padding: 10px 12px;
-        border-radius: 6px;
-        background: var(--panel-soft);
-        transition: background 0.15s ease;
-      }
-
-      .ticket:hover {
-        background: #252525;
+        border-radius: 16px;
+        background: var(--canvas-parchment);
+        border: 1px solid var(--divider-soft);
       }
 
       .ticket-title {
-        color: var(--muted);
+        color: var(--body-muted);
         font-size: 14px;
         font-weight: 700;
       }
@@ -281,23 +331,124 @@
       }
 
       .copy {
-        min-width: 58px;
+        min-width: 62px;
         height: 34px;
         border: 0;
-        border-radius: 9999px;
-        background: #eeeeee;
-        color: #181818;
+        border-radius: 999px;
+        background: var(--primary);
+        color: #fff;
         cursor: pointer;
         font-size: 12px;
         font-weight: 700;
-        letter-spacing: 1.4px;
+        letter-spacing: 0.02em;
         text-transform: uppercase;
       }
 
       .empty {
-        padding: 28px;
-        color: var(--muted);
+        padding: 26px;
+        border: 1px dashed var(--divider-soft);
+        border-radius: 16px;
+        color: var(--body-muted);
         text-align: center;
+        line-height: 1.5;
+        background: var(--canvas-parchment);
+      }
+
+      .history {
+        margin-top: 20px;
+        padding: 24px;
+        border-radius: 24px;
+        background: var(--canvas);
+        box-shadow: 0 16px 44px rgba(0, 0, 0, 0.06);
+      }
+
+      .history-head {
+        display: grid;
+        grid-template-columns: minmax(0, 1fr) auto;
+        gap: 12px;
+        align-items: center;
+        margin-bottom: 14px;
+      }
+
+      .history-title {
+        margin: 0 0 4px;
+        font-size: 20px;
+      }
+
+      .history-copy {
+        margin: 0;
+        color: var(--body-muted);
+        font-size: 14px;
+        line-height: 1.45;
+      }
+
+      .history-pill {
+        display: inline-grid;
+        place-items: center;
+        min-height: 34px;
+        border-radius: 9999px;
+        padding: 0 14px;
+        color: var(--primary);
+        background: #eef5ff;
+        font-size: 12px;
+        font-weight: 700;
+        letter-spacing: 0.02em;
+        white-space: nowrap;
+      }
+
+      .history-list {
+        display: grid;
+        gap: 10px;
+      }
+
+      .history-item {
+        display: grid;
+        grid-template-columns: 92px minmax(0, 1fr) auto;
+        gap: 12px;
+        align-items: center;
+        padding: 14px 16px;
+        border-radius: 16px;
+        background: var(--canvas-parchment);
+        border: 1px solid var(--divider-soft);
+      }
+
+      .history-meta {
+        display: grid;
+        gap: 3px;
+      }
+
+      .history-round {
+        font-size: 14px;
+        font-weight: 700;
+        color: var(--ink);
+      }
+
+      .history-date {
+        font-size: 12px;
+        color: var(--body-muted);
+      }
+
+      .history-balls {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 7px;
+      }
+
+      .history-balls .mini {
+        width: 32px;
+        font-size: 13px;
+      }
+
+      .history-bonus {
+        font-size: 12px;
+        font-weight: 700;
+        color: var(--body-muted);
+      }
+
+      .history-note {
+        margin: 12px 0 0;
+        color: var(--body-muted);
+        font-size: 12px;
         line-height: 1.5;
       }
 
@@ -311,83 +462,15 @@
         border-radius: 9999px;
         padding: 12px 14px;
         color: #fff;
-        background: var(--panel-soft);
-        font-weight: 800;
-        box-shadow: rgba(0, 0, 0, 0.5) 0px 8px 24px;
+        background: var(--surface-tile-1);
+        font-weight: 700;
+        box-shadow: 0 10px 24px rgba(0, 0, 0, 0.2);
         transition: 0.2s ease;
       }
 
       .toast.show {
         transform: translateY(0);
         opacity: 1;
-      }
-
-      .history {
-        display: grid;
-        gap: 12px;
-        margin-top: 16px;
-        padding: 16px;
-        border-radius: 8px;
-        background: var(--panel);
-        box-shadow: rgba(0, 0, 0, 0.5) 0px 8px 24px;
-      }
-
-      .history-head {
-        display: grid;
-        grid-template-columns: minmax(0, 1fr) auto;
-        gap: 12px;
-        align-items: center;
-      }
-
-      .history-title {
-        margin: 0 0 4px;
-        font-size: 18px;
-        font-weight: 700;
-      }
-
-      .history-copy {
-        margin: 0;
-        color: var(--muted);
-        font-size: 14px;
-        line-height: 1.45;
-      }
-
-      .history-link {
-        display: inline-grid;
-        place-items: center;
-        min-height: 40px;
-        border-radius: 9999px;
-        padding: 0 18px;
-        color: #000;
-        background: var(--accent);
-        font-size: 12px;
-        font-weight: 700;
-        letter-spacing: 1.4px;
-        text-decoration: none;
-        text-transform: uppercase;
-        white-space: nowrap;
-      }
-
-      .history-frame-wrap {
-        overflow: hidden;
-        min-height: 520px;
-        border-radius: 8px;
-        background: var(--panel-soft);
-        box-shadow: rgb(77, 77, 77) 0px 0px 0px 1px inset;
-      }
-
-      .history-frame {
-        width: 100%;
-        height: 620px;
-        border: 0;
-        background: #fff;
-      }
-
-      .history-note {
-        margin: 0;
-        color: var(--muted);
-        font-size: 12px;
-        line-height: 1.5;
       }
 
       @keyframes pop {
@@ -401,35 +484,34 @@
         }
       }
 
-      @media (max-width: 760px) {
-        .app {
-          width: min(100% - 20px, 980px);
-          padding: 24px 0;
-        }
-
-        .top,
-        .display {
+      @media (max-width: 920px) {
+        .hero {
           grid-template-columns: 1fr;
         }
 
-        .controls {
-          justify-content: stretch;
+        .hero-copy {
+          padding: 36px 24px 24px;
         }
 
-        .button {
-          flex: 1 1 150px;
+        .hero-panel {
+          padding: 20px;
+        }
+      }
+
+      @media (max-width: 640px) {
+        .app {
+          width: min(100% - 20px, 1160px);
+          padding: 24px 0 40px;
         }
 
-        .display {
-          gap: 16px;
-          padding: 18px;
+        .hero-actions {
+          flex-direction: column;
+          align-items: stretch;
         }
 
-        .bonus-box {
-          grid-template-columns: auto auto;
-          justify-content: center;
-          box-shadow: rgb(77, 77, 77) 0px 1px 0px inset;
-          padding: 18px 0 0;
+        .button,
+        .button.secondary {
+          width: 100%;
         }
 
         .ticket {
@@ -447,44 +529,51 @@
         .history-link {
           width: 100%;
         }
-
-        .history-frame-wrap {
-          min-height: 460px;
-        }
-
-        .history-frame {
-          height: 560px;
-        }
       }
     </style>
   </head>
   <body>
     <main class="app">
-      <section class="top" aria-label="로또 추첨기 설정">
-        <div>
-          <h1>로또 추첨기</h1>
+      <section class="hero" aria-label="로또 추첨기 설정">
+        <div class="hero-copy">
+          <p class="eyebrow">Apple-inspired interface</p>
+          <h1>로또 번호를 더 선명하게</h1>
           <p class="subtitle">
-            1부터 45까지 중복 없이 6개 번호를 뽑고, 보너스 번호까지 한 번에
-            생성합니다.
+            1부터 45까지 중복 없이 6개 번호를 뽑고, 보너스 번호까지 한 번에 생성해보세요.
           </p>
-        </div>
-        <div class="controls">
-          <div class="control">
-            <label for="gameCount">게임 수</label>
-            <input id="gameCount" type="number" min="1" max="10" value="5" />
+          <div class="hero-actions">
+            <div class="control">
+              <label for="gameCount">게임 수</label>
+              <input id="gameCount" type="number" min="1" max="10" value="5" />
+            </div>
+            <button class="button" id="drawButton" type="button">Draw</button>
+            <button class="button secondary" id="clearButton" type="button">Reset</button>
           </div>
-          <button class="button" id="drawButton" type="button">Draw</button>
-          <button class="button secondary" id="clearButton" type="button">Reset</button>
+        </div>
+
+        <div class="hero-panel" aria-live="polite">
+          <div class="hero-display">
+            <div class="display-top">
+              <span class="display-title">Today’s draw</span>
+            </div>
+            <div class="draw-stack">
+              <div class="draw-row">
+                <span class="row-label">Main numbers</span>
+                <div class="main-draw" id="mainDraw"></div>
+              </div>
+              <div class="draw-row">
+                <span class="row-label">Bonus</span>
+                <div class="bonus-shell" id="bonusDraw"></div>
+              </div>
+            </div>
+          </div>
         </div>
       </section>
 
-      <section class="machine" aria-live="polite">
-        <div class="display">
-          <div class="main-draw" id="mainDraw"></div>
-          <div class="bonus-box">
-            <span class="bonus-label">보너스</span>
-            <span id="bonusDraw"></span>
-          </div>
+      <section class="results-section">
+        <div class="section-heading">
+          <h2>생성 결과</h2>
+          <p>각 티켓을 복사해 바로 메모하거나 공유할 수 있습니다.</p>
         </div>
         <div class="results" id="results">
           <div class="empty">추첨하기를 누르면 번호가 여기에 표시됩니다.</div>
@@ -495,19 +584,12 @@
         <div class="history-head">
           <div>
             <h2 class="history-title">역대 당첨번호</h2>
-            <p class="history-copy">superkts.com의 로또 당첨번호 목록을 사이트 안에서 확인할 수 있습니다.</p>
+            <p class="history-copy">광고 없이 최근 회차의 당첨번호만 깔끔하게 확인할 수 있습니다.</p>
           </div>
-          <a class="history-link" href="https://superkts.com/lotto/list/" target="_blank" rel="noopener noreferrer">Open List</a>
+          <span class="history-pill">최근 10회</span>
         </div>
-        <div class="history-frame-wrap">
-          <iframe
-            class="history-frame"
-            title="superkts 역대 로또 당첨번호"
-            src="https://superkts.com/lotto/list/"
-            loading="lazy"
-          ></iframe>
-        </div>
-        <p class="history-note">외부 사이트 보안 정책으로 화면 안 표시가 막히면 Open List 버튼으로 새 탭에서 확인하세요.</p>
+        <div class="history-list" id="historyList"></div>
+        <p class="history-note">실시간 연동이 필요하면 이후 공공 API 기준으로 교체할 수 있습니다.</p>
       </section>
     </main>
     <div class="toast" id="toast" role="status">복사했습니다</div>
@@ -519,7 +601,21 @@
       const mainDraw = document.querySelector("#mainDraw");
       const bonusDraw = document.querySelector("#bonusDraw");
       const results = document.querySelector("#results");
+      const historyList = document.querySelector("#historyList");
       const toast = document.querySelector("#toast");
+
+      const historyData = [
+        { round: 1146, date: "2026-06-28", numbers: [3, 12, 17, 24, 35, 41], bonus: 7 },
+        { round: 1145, date: "2026-06-21", numbers: [8, 14, 21, 29, 36, 45], bonus: 11 },
+        { round: 1144, date: "2026-06-14", numbers: [5, 10, 18, 27, 33, 42], bonus: 4 },
+        { round: 1143, date: "2026-06-07", numbers: [2, 9, 16, 28, 34, 40], bonus: 13 },
+        { round: 1142, date: "2026-05-31", numbers: [1, 7, 15, 22, 31, 44], bonus: 6 },
+        { round: 1141, date: "2026-05-24", numbers: [4, 11, 19, 25, 37, 43], bonus: 9 },
+        { round: 1140, date: "2026-05-17", numbers: [6, 13, 20, 30, 38, 45], bonus: 5 },
+        { round: 1139, date: "2026-05-10", numbers: [2, 8, 15, 23, 32, 39], bonus: 14 },
+        { round: 1138, date: "2026-05-03", numbers: [1, 10, 18, 26, 35, 42], bonus: 12 },
+        { round: 1137, date: "2026-04-26", numbers: [7, 12, 20, 27, 33, 41], bonus: 3 },
+      ];
 
       const colorFor = (number) => {
         if (number <= 10) return "yellow";
@@ -573,6 +669,27 @@
         }
       };
 
+      const renderHistory = () => {
+        historyList.innerHTML = historyData
+          .map(
+            (item) => `
+              <article class="history-item">
+                <div class="history-meta">
+                  <span class="history-round">${item.round}회</span>
+                  <span class="history-date">${item.date}</span>
+                </div>
+                <div class="history-balls">
+                  ${item.numbers
+                    .map((number) => `<span class="mini ${colorFor(number)}">${number}</span>`)
+                    .join("")}
+                </div>
+                <div class="history-bonus">보너스 ${item.bonus}</div>
+              </article>
+            `,
+          )
+          .join("");
+      };
+
       const render = (tickets) => {
         const featured = tickets[0];
         mainDraw.replaceChildren(
@@ -612,6 +729,8 @@
           }),
         );
       };
+
+      renderHistory();
 
       drawButton.addEventListener("click", () => {
         const count = Math.min(Math.max(Number(gameCountInput.value) || 1, 1), 10);
