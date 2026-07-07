@@ -1,0 +1,630 @@
+<!doctype html>
+<html lang="ko">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>로또 추첨기</title>
+    <style>
+      :root {
+        color-scheme: dark;
+        --ink: #ffffff;
+        --muted: #b3b3b3;
+        --line: #4d4d4d;
+        --panel: #181818;
+        --panel-soft: #1f1f1f;
+        --bg: #121212;
+        --accent: #1ed760;
+        --accent-dark: #1db954;
+        --gold: #d9a441;
+        --blue: #539df5;
+        --red: #f3727f;
+        --gray: #7c7c7c;
+        --green: #1ed760;
+        font-family:
+          SpotifyMixUI, CircularSp-Arab, CircularSp-Hebr, CircularSp-Cyrl,
+          CircularSp-Grek, CircularSp-Deva, "Helvetica Neue", helvetica, arial,
+          "Hiragino Sans", "Hiragino Kaku Gothic ProN", Meiryo, "MS Gothic",
+          sans-serif;
+      }
+
+      * {
+        box-sizing: border-box;
+      }
+
+      body {
+        min-height: 100vh;
+        margin: 0;
+        color: var(--ink);
+        background: var(--bg);
+      }
+
+      button,
+      input {
+        font: inherit;
+      }
+
+      .app {
+        width: min(1040px, calc(100% - 32px));
+        margin: 0 auto;
+        padding: 24px 0 28px;
+      }
+
+      .top {
+        display: grid;
+        grid-template-columns: 1fr auto;
+        gap: 20px;
+        align-items: end;
+        margin-bottom: 16px;
+      }
+
+      h1 {
+        margin: 0 0 6px;
+        font-family:
+          SpotifyMixUITitle, SpotifyMixUI, "Helvetica Neue", helvetica, arial,
+          "Hiragino Sans", Meiryo, sans-serif;
+        font-size: clamp(28px, 4vw, 44px);
+        line-height: 1.05;
+        letter-spacing: 0;
+      }
+
+      .subtitle {
+        max-width: 560px;
+        margin: 0;
+        color: var(--muted);
+        font-size: 14px;
+        line-height: 1.45;
+      }
+
+      .controls {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 10px;
+        align-items: center;
+        justify-content: flex-end;
+      }
+
+      .control {
+        display: grid;
+        gap: 5px;
+      }
+
+      label {
+        color: var(--muted);
+        font-size: 12px;
+        font-weight: 700;
+      }
+
+      input[type="number"] {
+        width: 92px;
+        height: 44px;
+        border: 0;
+        border-radius: 500px;
+        padding: 0 12px;
+        background: var(--panel-soft);
+        color: var(--ink);
+        font-weight: 700;
+        text-align: center;
+        box-shadow:
+          rgb(18, 18, 18) 0px 1px 0px,
+          rgb(124, 124, 124) 0px 0px 0px 1px inset;
+      }
+
+      .button {
+        min-height: 44px;
+        border: 0;
+        border-radius: 9999px;
+        padding: 0 20px;
+        cursor: pointer;
+        color: #000;
+        background: var(--accent);
+        font-size: 14px;
+        font-weight: 700;
+        letter-spacing: 1.4px;
+        text-transform: uppercase;
+        box-shadow: rgba(0, 0, 0, 0.5) 0px 8px 24px;
+        transition:
+          transform 0.15s ease,
+          background 0.15s ease;
+      }
+
+      .button:hover {
+        background: var(--accent-dark);
+        transform: translateY(-1px);
+      }
+
+      .button.secondary {
+        color: var(--ink);
+        background: var(--panel-soft);
+        box-shadow: rgb(124, 124, 124) 0px 0px 0px 1px inset;
+      }
+
+      .machine {
+        overflow: hidden;
+        border-radius: 8px;
+        background: var(--panel);
+        box-shadow: rgba(0, 0, 0, 0.5) 0px 8px 24px;
+      }
+
+      .display {
+        display: grid;
+        grid-template-columns: minmax(0, 1fr) 170px;
+        gap: 20px;
+        align-items: center;
+        min-height: 188px;
+        padding: 20px;
+        background:
+          linear-gradient(135deg, rgba(31, 31, 31, 0.98), rgba(24, 24, 24, 0.98)),
+          repeating-linear-gradient(90deg, transparent 0 31px, rgba(255, 255, 255, 0.025) 31px 32px);
+      }
+
+      .main-draw {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 12px;
+        align-items: center;
+      }
+
+      .bonus-box {
+        display: grid;
+        gap: 8px;
+        justify-items: center;
+        padding: 20px 12px;
+        box-shadow: rgb(77, 77, 77) 1px 0px 0px inset;
+      }
+
+      .bonus-label {
+        color: var(--muted);
+        font-size: 12px;
+        font-weight: 800;
+        letter-spacing: 1.4px;
+        text-transform: uppercase;
+      }
+
+      .ball {
+        display: inline-grid;
+        place-items: center;
+        width: clamp(50px, 9vw, 72px);
+        aspect-ratio: 1;
+        border-radius: 50%;
+        color: #fff;
+        font-size: clamp(22px, 4vw, 32px);
+        font-weight: 700;
+        text-shadow: 0 1px 1px rgba(0, 0, 0, 0.24);
+        box-shadow:
+          inset -10px -12px 20px rgba(0, 0, 0, 0.28),
+          inset 7px 8px 14px rgba(255, 255, 255, 0.18),
+          rgba(0, 0, 0, 0.5) 0px 8px 24px;
+        animation: pop 0.34s ease both;
+      }
+
+      .ball.small {
+        width: 64px;
+        font-size: 28px;
+      }
+
+      .ball::after {
+        content: "";
+        width: 24%;
+        aspect-ratio: 1;
+        border-radius: 50%;
+        background: rgba(255, 255, 255, 0.55);
+        position: absolute;
+        transform: translate(-65%, -70%);
+        filter: blur(1px);
+      }
+
+      .yellow {
+        background: var(--gold);
+      }
+
+      .blue {
+        background: var(--blue);
+      }
+
+      .red {
+        background: var(--red);
+      }
+
+      .gray {
+        background: var(--gray);
+      }
+
+      .green {
+        background: var(--green);
+      }
+
+      .results {
+        display: grid;
+        gap: 8px;
+        padding: 12px;
+        box-shadow: rgb(77, 77, 77) 0px 1px 0px inset;
+        background: var(--panel);
+      }
+
+      .ticket {
+        display: grid;
+        grid-template-columns: 70px minmax(0, 1fr) auto;
+        gap: 10px;
+        align-items: center;
+        min-height: 54px;
+        padding: 10px 12px;
+        border-radius: 6px;
+        background: var(--panel-soft);
+        transition: background 0.15s ease;
+      }
+
+      .ticket:hover {
+        background: #252525;
+      }
+
+      .ticket-title {
+        color: var(--muted);
+        font-size: 14px;
+        font-weight: 700;
+      }
+
+      .numbers {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 7px;
+      }
+
+      .mini {
+        display: inline-grid;
+        place-items: center;
+        width: 34px;
+        aspect-ratio: 1;
+        border-radius: 50%;
+        color: #fff;
+        font-size: 14px;
+        font-weight: 700;
+      }
+
+      .copy {
+        min-width: 58px;
+        height: 34px;
+        border: 0;
+        border-radius: 9999px;
+        background: #eeeeee;
+        color: #181818;
+        cursor: pointer;
+        font-size: 12px;
+        font-weight: 700;
+        letter-spacing: 1.4px;
+        text-transform: uppercase;
+      }
+
+      .empty {
+        padding: 28px;
+        color: var(--muted);
+        text-align: center;
+        line-height: 1.5;
+      }
+
+      .toast {
+        position: fixed;
+        right: 20px;
+        bottom: 20px;
+        transform: translateY(20px);
+        opacity: 0;
+        pointer-events: none;
+        border-radius: 9999px;
+        padding: 12px 14px;
+        color: #fff;
+        background: var(--panel-soft);
+        font-weight: 800;
+        box-shadow: rgba(0, 0, 0, 0.5) 0px 8px 24px;
+        transition: 0.2s ease;
+      }
+
+      .toast.show {
+        transform: translateY(0);
+        opacity: 1;
+      }
+
+      .history {
+        display: grid;
+        gap: 12px;
+        margin-top: 16px;
+        padding: 16px;
+        border-radius: 8px;
+        background: var(--panel);
+        box-shadow: rgba(0, 0, 0, 0.5) 0px 8px 24px;
+      }
+
+      .history-head {
+        display: grid;
+        grid-template-columns: minmax(0, 1fr) auto;
+        gap: 12px;
+        align-items: center;
+      }
+
+      .history-title {
+        margin: 0 0 4px;
+        font-size: 18px;
+        font-weight: 700;
+      }
+
+      .history-copy {
+        margin: 0;
+        color: var(--muted);
+        font-size: 14px;
+        line-height: 1.45;
+      }
+
+      .history-link {
+        display: inline-grid;
+        place-items: center;
+        min-height: 40px;
+        border-radius: 9999px;
+        padding: 0 18px;
+        color: #000;
+        background: var(--accent);
+        font-size: 12px;
+        font-weight: 700;
+        letter-spacing: 1.4px;
+        text-decoration: none;
+        text-transform: uppercase;
+        white-space: nowrap;
+      }
+
+      .history-frame-wrap {
+        overflow: hidden;
+        min-height: 520px;
+        border-radius: 8px;
+        background: var(--panel-soft);
+        box-shadow: rgb(77, 77, 77) 0px 0px 0px 1px inset;
+      }
+
+      .history-frame {
+        width: 100%;
+        height: 620px;
+        border: 0;
+        background: #fff;
+      }
+
+      .history-note {
+        margin: 0;
+        color: var(--muted);
+        font-size: 12px;
+        line-height: 1.5;
+      }
+
+      @keyframes pop {
+        from {
+          transform: scale(0.35) rotate(-16deg);
+          opacity: 0;
+        }
+        to {
+          transform: scale(1) rotate(0);
+          opacity: 1;
+        }
+      }
+
+      @media (max-width: 760px) {
+        .app {
+          width: min(100% - 20px, 980px);
+          padding: 24px 0;
+        }
+
+        .top,
+        .display {
+          grid-template-columns: 1fr;
+        }
+
+        .controls {
+          justify-content: stretch;
+        }
+
+        .button {
+          flex: 1 1 150px;
+        }
+
+        .display {
+          gap: 16px;
+          padding: 18px;
+        }
+
+        .bonus-box {
+          grid-template-columns: auto auto;
+          justify-content: center;
+          box-shadow: rgb(77, 77, 77) 0px 1px 0px inset;
+          padding: 18px 0 0;
+        }
+
+        .ticket {
+          grid-template-columns: 1fr;
+        }
+
+        .copy {
+          width: 100%;
+        }
+
+        .history-head {
+          grid-template-columns: 1fr;
+        }
+
+        .history-link {
+          width: 100%;
+        }
+
+        .history-frame-wrap {
+          min-height: 460px;
+        }
+
+        .history-frame {
+          height: 560px;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <main class="app">
+      <section class="top" aria-label="로또 추첨기 설정">
+        <div>
+          <h1>로또 추첨기</h1>
+          <p class="subtitle">
+            1부터 45까지 중복 없이 6개 번호를 뽑고, 보너스 번호까지 한 번에
+            생성합니다.
+          </p>
+        </div>
+        <div class="controls">
+          <div class="control">
+            <label for="gameCount">게임 수</label>
+            <input id="gameCount" type="number" min="1" max="10" value="5" />
+          </div>
+          <button class="button" id="drawButton" type="button">Draw</button>
+          <button class="button secondary" id="clearButton" type="button">Reset</button>
+        </div>
+      </section>
+
+      <section class="machine" aria-live="polite">
+        <div class="display">
+          <div class="main-draw" id="mainDraw"></div>
+          <div class="bonus-box">
+            <span class="bonus-label">보너스</span>
+            <span id="bonusDraw"></span>
+          </div>
+        </div>
+        <div class="results" id="results">
+          <div class="empty">추첨하기를 누르면 번호가 여기에 표시됩니다.</div>
+        </div>
+      </section>
+
+      <section class="history" aria-label="역대 로또 당첨번호">
+        <div class="history-head">
+          <div>
+            <h2 class="history-title">역대 당첨번호</h2>
+            <p class="history-copy">superkts.com의 로또 당첨번호 목록을 사이트 안에서 확인할 수 있습니다.</p>
+          </div>
+          <a class="history-link" href="https://superkts.com/lotto/list/" target="_blank" rel="noopener noreferrer">Open List</a>
+        </div>
+        <div class="history-frame-wrap">
+          <iframe
+            class="history-frame"
+            title="superkts 역대 로또 당첨번호"
+            src="https://superkts.com/lotto/list/"
+            loading="lazy"
+          ></iframe>
+        </div>
+        <p class="history-note">외부 사이트 보안 정책으로 화면 안 표시가 막히면 Open List 버튼으로 새 탭에서 확인하세요.</p>
+      </section>
+    </main>
+    <div class="toast" id="toast" role="status">복사했습니다</div>
+
+    <script>
+      const drawButton = document.querySelector("#drawButton");
+      const clearButton = document.querySelector("#clearButton");
+      const gameCountInput = document.querySelector("#gameCount");
+      const mainDraw = document.querySelector("#mainDraw");
+      const bonusDraw = document.querySelector("#bonusDraw");
+      const results = document.querySelector("#results");
+      const toast = document.querySelector("#toast");
+
+      const colorFor = (number) => {
+        if (number <= 10) return "yellow";
+        if (number <= 20) return "blue";
+        if (number <= 30) return "red";
+        if (number <= 40) return "gray";
+        return "green";
+      };
+
+      const createBall = (number, size = "") => {
+        const ball = document.createElement("span");
+        ball.className = `ball ${size} ${colorFor(number)}`.trim();
+        ball.textContent = number;
+        ball.style.position = "relative";
+        return ball;
+      };
+
+      const createMiniBall = (number) => {
+        const ball = document.createElement("span");
+        ball.className = `mini ${colorFor(number)}`;
+        ball.textContent = number;
+        return ball;
+      };
+
+      const drawNumbers = () => {
+        const pool = Array.from({ length: 45 }, (_, index) => index + 1);
+
+        for (let index = pool.length - 1; index > 0; index -= 1) {
+          const randomIndex = Math.floor(Math.random() * (index + 1));
+          [pool[index], pool[randomIndex]] = [pool[randomIndex], pool[index]];
+        }
+
+        const numbers = pool.slice(0, 6).sort((a, b) => a - b);
+        const bonus = pool[6];
+        return { numbers, bonus };
+      };
+
+      const showToast = () => {
+        toast.classList.add("show");
+        window.setTimeout(() => toast.classList.remove("show"), 1200);
+      };
+
+      const copyTicket = async (ticket) => {
+        const text = `${ticket.numbers.join(", ")} + 보너스 ${ticket.bonus}`;
+
+        try {
+          await navigator.clipboard.writeText(text);
+          showToast();
+        } catch {
+          window.prompt("아래 번호를 복사하세요.", text);
+        }
+      };
+
+      const render = (tickets) => {
+        const featured = tickets[0];
+        mainDraw.replaceChildren(
+          ...featured.numbers.map((number, index) => {
+            const ball = createBall(number);
+            ball.style.animationDelay = `${index * 55}ms`;
+            return ball;
+          }),
+        );
+        bonusDraw.replaceChildren(createBall(featured.bonus, "small"));
+
+        results.replaceChildren(
+          ...tickets.map((ticket, index) => {
+            const row = document.createElement("article");
+            row.className = "ticket";
+
+            const title = document.createElement("div");
+            title.className = "ticket-title";
+            title.textContent = `${index + 1}게임`;
+
+            const numbers = document.createElement("div");
+            numbers.className = "numbers";
+            numbers.append(
+              ...ticket.numbers.map(createMiniBall),
+              document.createTextNode("+"),
+              createMiniBall(ticket.bonus),
+            );
+
+            const copyButton = document.createElement("button");
+            copyButton.className = "copy";
+            copyButton.type = "button";
+            copyButton.textContent = "Copy";
+            copyButton.addEventListener("click", () => copyTicket(ticket));
+
+            row.append(title, numbers, copyButton);
+            return row;
+          }),
+        );
+      };
+
+      drawButton.addEventListener("click", () => {
+        const count = Math.min(Math.max(Number(gameCountInput.value) || 1, 1), 10);
+        gameCountInput.value = count;
+        render(Array.from({ length: count }, drawNumbers));
+      });
+
+      clearButton.addEventListener("click", () => {
+        mainDraw.replaceChildren();
+        bonusDraw.replaceChildren();
+        results.innerHTML =
+          '<div class="empty">추첨하기를 누르면 번호가 여기에 표시됩니다.</div>';
+      });
+    </script>
+  </body>
+</html>
