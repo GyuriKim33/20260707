@@ -800,6 +800,15 @@
       async function handleDrawClick() {
         const count = Math.min(Math.max(Number(gameCountInput.value) || 1, 1), 10);
         gameCountInput.value = count;
+
+        if (typeof window.gtag === "function") {
+          window.gtag("event", "draw_click", {
+            event_category: "lotto",
+            event_label: `${count}games`,
+            value: count,
+          });
+        }
+
         const tickets = Array.from({ length: count }, drawNumbers);
         render(tickets);
 
