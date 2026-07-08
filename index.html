@@ -4,6 +4,14 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>로또 추첨기</title>
+    <!-- Google tag (gtag.js) -->
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-F060VWPL3F"></script>
+    <script>
+      window.dataLayer = window.dataLayer || [];
+      function gtag(){dataLayer.push(arguments);}
+      gtag('js', new Date());
+      gtag('config', 'G-F060VWPL3F');
+    </script>
     <style>
       :root {
         color-scheme: light;
@@ -546,8 +554,8 @@
               <label for="gameCount">게임 수</label>
               <input id="gameCount" type="number" min="1" max="10" value="5" />
             </div>
-            <button class="button" id="drawButton" type="button">Draw</button>
-            <button class="button secondary" id="clearButton" type="button">Reset</button>
+            <button class="button" id="drawButton" type="button" onclick="handleDrawClick()">Draw</button>
+            <button class="button secondary" id="clearButton" type="button" onclick="handleClearClick()">Reset</button>
           </div>
         </div>
 
@@ -594,7 +602,6 @@
     </main>
     <div class="toast" id="toast" role="status">복사했습니다</div>
 
-    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script>
       const drawButton = document.querySelector("#drawButton");
       const clearButton = document.querySelector("#clearButton");
@@ -607,20 +614,31 @@
 
       const SUPABASE_URL = window.SUPABASE_URL || "https://wykhwambsqudtkwyxtbu.supabase.co";
       const SUPABASE_ANON_KEY = window.SUPABASE_ANON_KEY || "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Ind5a2h3YW1ic3F1ZHRrd3l4dGJ1Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODMzOTQ5MTUsImV4cCI6MjA5ODk3MDkxNX0.ZffjEROfUAKsVjOcNEqf1vY2eQzlmg97ok_LGP0xhzo";
-      const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
-      const historyData = [
-        { round: 1146, date: "2026-06-28", numbers: [3, 12, 17, 24, 35, 41], bonus: 7 },
-        { round: 1145, date: "2026-06-21", numbers: [8, 14, 21, 29, 36, 45], bonus: 11 },
-        { round: 1144, date: "2026-06-14", numbers: [5, 10, 18, 27, 33, 42], bonus: 4 },
-        { round: 1143, date: "2026-06-07", numbers: [2, 9, 16, 28, 34, 40], bonus: 13 },
-        { round: 1142, date: "2026-05-31", numbers: [1, 7, 15, 22, 31, 44], bonus: 6 },
-        { round: 1141, date: "2026-05-24", numbers: [4, 11, 19, 25, 37, 43], bonus: 9 },
-        { round: 1140, date: "2026-05-17", numbers: [6, 13, 20, 30, 38, 45], bonus: 5 },
-        { round: 1139, date: "2026-05-10", numbers: [2, 8, 15, 23, 32, 39], bonus: 14 },
-        { round: 1138, date: "2026-05-03", numbers: [1, 10, 18, 26, 35, 42], bonus: 12 },
-        { round: 1137, date: "2026-04-26", numbers: [7, 12, 20, 27, 33, 41], bonus: 3 },
-      ];
+      const supabaseRequest = async (path, options = {}) => {
+        const response = await fetch(`${SUPABASE_URL}${path}`, {
+          ...options,
+          headers: {
+            apikey: SUPABASE_ANON_KEY,
+            Authorization: `Bearer ${SUPABASE_ANON_KEY}`,
+            Accept: "application/json",
+            "Content-Type": "application/json",
+            ...(options.headers || {}),
+          },
+        });
+
+        const text = await response.text();
+        if (!response.ok) {
+          throw new Error(`Supabase 요청 실패 (${response.status}): ${text}`);
+        }
+
+        if (!text) return null;
+        try {
+          return JSON.parse(text);
+        } catch {
+          return text;
+        }
+      };
 
       const colorFor = (number) => {
         if (number <= 10) return "yellow";
@@ -665,26 +683,24 @@
       };
 
       const saveDrawToSupabase = async (ticket) => {
-        if (!supabase) {
-          console.warn("Supabase 설정이 아직 없어 저장을 건너뜁니다.");
-          return { ok: false, message: "Supabase 설정이 필요합니다." };
-        }
-
-        const payload = {
+        const payload = [{
           draw_numbers: ticket.numbers,
           bonus_number: ticket.bonus,
           ticket_count: 1,
           created_at: new Date().toISOString(),
-        };
+        }];
 
-        const { error } = await supabase.from("lotto_draws").insert(payload);
-
-        if (error) {
+        try {
+          await supabaseRequest("/rest/v1/lotto_draws", {
+            method: "POST",
+            body: JSON.stringify(payload),
+            headers: { Prefer: "return=minimal" },
+          });
+          return { ok: true, message: "저장 완료" };
+        } catch (error) {
           console.error("Supabase 저장 실패", error);
           return { ok: false, message: error.message || "저장에 실패했습니다." };
         }
-
-        return { ok: true, message: "저장 완료" };
       };
 
       const copyTicket = async (ticket) => {
@@ -699,48 +715,46 @@
       };
 
       const renderHistory = async () => {
-        const { data, error } = await supabase
-          .from("lotto_draws")
-          .select("id, draw_numbers, bonus_number, created_at")
-          .order("created_at", { ascending: false })
-          .limit(10);
+        try {
+          const data = await supabaseRequest(
+            "/rest/v1/lotto_draws?select=id,draw_numbers,bonus_number,created_at&order=created_at.desc&limit=10"
+          );
 
-        if (error) {
+          const items = (data || []).map((item) => ({
+            round: item.id,
+            date: new Date(item.created_at).toLocaleDateString("ko-KR"),
+            numbers: item.draw_numbers,
+            bonus: item.bonus_number,
+          }));
+
+          if (!items.length) {
+            historyList.innerHTML = '<div class="empty">아직 저장된 당첨 기록이 없습니다.</div>';
+            return;
+          }
+
+          historyList.innerHTML = items
+            .map(
+              (item) => `
+                <article class="history-item">
+                  <div class="history-meta">
+                    <span class="history-round">${item.round}회</span>
+                    <span class="history-date">${item.date}</span>
+                  </div>
+                  <div class="history-balls">
+                    ${item.numbers
+                      .map((number) => `<span class="mini ${colorFor(number)}">${number}</span>`)
+                      .join("")}
+                  </div>
+                  <div class="history-bonus">보너스 ${item.bonus}</div>
+                </article>
+              `,
+            )
+            .join("");
+        } catch (error) {
           console.error("히스토리 조회 실패", error);
           historyList.innerHTML = '<div class="empty">저장된 기록을 불러오지 못했습니다.</div>';
-          return;
         }
 
-        const items = (data || []).map((item) => ({
-          round: item.id,
-          date: new Date(item.created_at).toLocaleDateString("ko-KR"),
-          numbers: item.draw_numbers,
-          bonus: item.bonus_number,
-        }));
-
-        if (!items.length) {
-          historyList.innerHTML = '<div class="empty">아직 저장된 당첨 기록이 없습니다.</div>';
-          return;
-        }
-
-        historyList.innerHTML = items
-          .map(
-            (item) => `
-              <article class="history-item">
-                <div class="history-meta">
-                  <span class="history-round">${item.round}회</span>
-                  <span class="history-date">${item.date}</span>
-                </div>
-                <div class="history-balls">
-                  ${item.numbers
-                    .map((number) => `<span class="mini ${colorFor(number)}">${number}</span>`)
-                    .join("")}
-                </div>
-                <div class="history-bonus">보너스 ${item.bonus}</div>
-              </article>
-            `,
-          )
-          .join("");
       };
 
       const render = (tickets) => {
@@ -783,9 +797,7 @@
         );
       };
 
-      renderHistory();
-
-      drawButton.addEventListener("click", async () => {
+      async function handleDrawClick() {
         const count = Math.min(Math.max(Number(gameCountInput.value) || 1, 1), 10);
         gameCountInput.value = count;
         const tickets = Array.from({ length: count }, drawNumbers);
@@ -796,14 +808,16 @@
         if (result.ok) {
           await renderHistory();
         }
-      });
+      }
 
-      clearButton.addEventListener("click", () => {
+      function handleClearClick() {
         mainDraw.replaceChildren();
         bonusDraw.replaceChildren();
         results.innerHTML =
           '<div class="empty">추첨하기를 누르면 번호가 여기에 표시됩니다.</div>';
-      });
+      }
+
+      renderHistory();
     </script>
   </body>
 </html>
