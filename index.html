@@ -594,6 +594,7 @@
     </main>
     <div class="toast" id="toast" role="status">복사했습니다</div>
 
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script>
       const drawButton = document.querySelector("#drawButton");
       const clearButton = document.querySelector("#clearButton");
@@ -603,6 +604,10 @@
       const results = document.querySelector("#results");
       const historyList = document.querySelector("#historyList");
       const toast = document.querySelector("#toast");
+
+      const SUPABASE_URL = window.SUPABASE_URL || "https://wykhwambsqudtkwyxtbu.supabase.co";
+      const SUPABASE_ANON_KEY = window.SUPABASE_ANON_KEY || "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Ind5a2h3YW1ic3F1ZHRrd3l4dGJ1Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODMzOTQ5MTUsImV4cCI6MjA5ODk3MDkxNX0.ZffjEROfUAKsVjOcNEqf1vY2eQzlmg97ok_LGP0xhzo";
+      const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
       const historyData = [
         { round: 1146, date: "2026-06-28", numbers: [3, 12, 17, 24, 35, 41], bonus: 7 },
@@ -653,9 +658,33 @@
         return { numbers, bonus };
       };
 
-      const showToast = () => {
+      const showToast = (message = "복사했습니다") => {
+        toast.textContent = message;
         toast.classList.add("show");
-        window.setTimeout(() => toast.classList.remove("show"), 1200);
+        window.setTimeout(() => toast.classList.remove("show"), 1400);
+      };
+
+      const saveDrawToSupabase = async (ticket) => {
+        if (!supabase) {
+          console.warn("Supabase 설정이 아직 없어 저장을 건너뜁니다.");
+          return { ok: false, message: "Supabase 설정이 필요합니다." };
+        }
+
+        const payload = {
+          draw_numbers: ticket.numbers,
+          bonus_number: ticket.bonus,
+          ticket_count: 1,
+          created_at: new Date().toISOString(),
+        };
+
+        const { error } = await supabase.from("lotto_draws").insert(payload);
+
+        if (error) {
+          console.error("Supabase 저장 실패", error);
+          return { ok: false, message: error.message || "저장에 실패했습니다." };
+        }
+
+        return { ok: true, message: "저장 완료" };
       };
 
       const copyTicket = async (ticket) => {
@@ -669,8 +698,32 @@
         }
       };
 
-      const renderHistory = () => {
-        historyList.innerHTML = historyData
+      const renderHistory = async () => {
+        const { data, error } = await supabase
+          .from("lotto_draws")
+          .select("id, draw_numbers, bonus_number, created_at")
+          .order("created_at", { ascending: false })
+          .limit(10);
+
+        if (error) {
+          console.error("히스토리 조회 실패", error);
+          historyList.innerHTML = '<div class="empty">저장된 기록을 불러오지 못했습니다.</div>';
+          return;
+        }
+
+        const items = (data || []).map((item) => ({
+          round: item.id,
+          date: new Date(item.created_at).toLocaleDateString("ko-KR"),
+          numbers: item.draw_numbers,
+          bonus: item.bonus_number,
+        }));
+
+        if (!items.length) {
+          historyList.innerHTML = '<div class="empty">아직 저장된 당첨 기록이 없습니다.</div>';
+          return;
+        }
+
+        historyList.innerHTML = items
           .map(
             (item) => `
               <article class="history-item">
@@ -732,10 +785,17 @@
 
       renderHistory();
 
-      drawButton.addEventListener("click", () => {
+      drawButton.addEventListener("click", async () => {
         const count = Math.min(Math.max(Number(gameCountInput.value) || 1, 1), 10);
         gameCountInput.value = count;
-        render(Array.from({ length: count }, drawNumbers));
+        const tickets = Array.from({ length: count }, drawNumbers);
+        render(tickets);
+
+        const result = await saveDrawToSupabase(tickets[0]);
+        showToast(result.message);
+        if (result.ok) {
+          await renderHistory();
+        }
       });
 
       clearButton.addEventListener("click", () => {
